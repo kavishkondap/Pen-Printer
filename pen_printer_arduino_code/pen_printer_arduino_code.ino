@@ -242,7 +242,7 @@ void apparatusCommandListener(String command) {
     setStep(true,true,true);
   	//Fast Horizontal Reset
     digitalWrite(H_DIR_PIN, H_DIR_BACKWARD);//TODO: set correct direction
-    while (false) (!getLimitSwitchActivated(H_LIMIT_PIN)) {
+    while (!getLimitSwitchActivated(H_LIMIT_PIN)) {
       step(H_STEP_PIN, 1);
     }
   	//Fast Vertical Reset
@@ -257,7 +257,7 @@ void apparatusCommandListener(String command) {
     step(V_STEP_PIN, 100);
     //Slow Horizontal Reset
     digitalWrite(H_DIR_PIN, H_DIR_BACKWARD);//TODO: set correct direction
-     while (false) (!getLimitSwitchActivated(H_LIMIT_PIN)) {
+     while (!getLimitSwitchActivated(H_LIMIT_PIN)) {
        step(H_STEP_PIN, 1);
        delay(5);
      }
@@ -267,6 +267,12 @@ void apparatusCommandListener(String command) {
        step(V_STEP_PIN, 1);
        delay(5);
      }
+     //move back
+     digitalWrite(H_DIR_PIN, H_DIR_FORWARD);
+     digitalWrite(V_DIR_PIN, V_DIR_BACKWARD);
+    step(H_STEP_PIN, 1000);
+    step(V_STEP_PIN, 20450);
+     
   }
 }
 
