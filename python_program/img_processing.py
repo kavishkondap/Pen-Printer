@@ -90,7 +90,7 @@ def make_instructions(frame):
 		xSteps += xDifSteps
 		ySteps += yDifSteps
 
-		penGoal = penInitial + math.floor(x * penFudge / width)
+		penGoal = penInitial - math.floor(x * penFudge / width)
 		if penGoal != penHeight:
 			penHeight = penGoal
 			instructions.append("penSet " + str(penHeight))
