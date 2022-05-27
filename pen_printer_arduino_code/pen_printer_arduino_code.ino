@@ -1,5 +1,5 @@
 #include <Servo.h>
-#include <AccelStepper.h>
+//#include <AccelStepper.h>
 
 //motor controllers pins
 #define H_DIR_PIN 2
@@ -223,31 +223,50 @@ void move(int h_step, int v_step, int h_sixteenth_step, int v_sixteenth_step) {
 	step(cur_step_pin, limit);
 }
 
+bool getLimitSwitchActivated(int pin) {
+  return digitalRead(pin) == HIGH;
+}
+
 void apparatusCommandListener(String command) {
   if (command.startsWith("aMove")) {//ex. 'aMove 16,3;17,2'
-	String horizontal = command.substring(command.indexOf(' ') + 1, command.indexOf(';'));
-	String vertical = command.substring(command.indexOf(';') + 1);
-	int h_step = horizontal.substring(0, horizontal.indexOf(',')).toInt();
-	int h_sixteenth_step = horizontal.substring(horizontal.indexOf(',') + 1).toInt();
-	int v_step = vertical.substring(0, horizontal.indexOf(',')).toInt();
-	int v_sixteenth_step = vertical.substring(horizontal.indexOf(',') + 1).toInt();
-	
-	move(h_step, v_step, h_sixteenth_step, v_sixteenth_step);
-
+    String horizontal = command.substring(command.indexOf(' ') + 1, command.indexOf(';'));
+    String vertical = command.substring(command.indexOf(';') + 1);
+    int h_step = horizontal.substring(0, horizontal.indexOf(',')).toInt();
+    int h_sixteenth_step = horizontal.substring(horizontal.indexOf(',') + 1).toInt();
+    int v_step = vertical.substring(0, horizontal.indexOf(',')).toInt();
+    int v_sixteenth_step = vertical.substring(horizontal.indexOf(',') + 1).toInt();
+    
+    move(h_step, v_step, h_sixteenth_step, v_sixteenth_step);
   }
   else if (command.startsWith("aReset")) {
-	//Horizontal Reset
-	digitalWrite(H_DIR_PIN, H_DIR_FORWARD);//TODO: set correct direction
-	while (false) {//while(!getLimitSwitchActivated(H_LIMIT_PIN)) {
-	  step(H_STEP_PIN, 1);
-	  delay(50);
-	}
-	//Vertical Reset
-	digitalWrite(V_DIR_PIN, V_DIR_FORWARD);//TODO: set correct direction
-	while(false){//!getLimitSwitchActivated(V_LIMIT_PIN)) {
-	  step(V_STEP_PIN, 1);
-	  delay(50);
-	}
+    setStep(true,true,true);
+  	//Fast Horizontal Reset
+    digitalWrite(H_DIR_PIN, H_DIR_BACKWARD);//TODO: set correct direction
+    while (false) (!getLimitSwitchActivated(H_LIMIT_PIN)) {
+      step(H_STEP_PIN, 1);
+    }
+  	//Fast Vertical Reset
+    digitalWrite(V_DIR_PIN, V_DIR_FORWARD);//TODO: set correct direction
+    while(!getLimitSwitchActivated(V_LIMIT_PIN)) {
+		step(V_STEP_PIN, 1);
+    }
+    //Taking a Step Back
+    digitalWrite(H_DIR_PIN, H_DIR_FORWARD);//TODO: set correct dirrection
+    digitalWrite(V_DIR_PIN, V_DIR_BACKWARD);
+    step(H_STEP_PIN, 100);
+    step(V_STEP_PIN, 100);
+    //Slow Horizontal Reset
+    digitalWrite(H_DIR_PIN, H_DIR_BACKWARD);//TODO: set correct direction
+     while (false) (!getLimitSwitchActivated(H_LIMIT_PIN)) {
+       step(H_STEP_PIN, 1);
+       delay(5);
+     }
+     //Slow Vertical Reset
+     digitalWrite(V_DIR_PIN, V_DIR_FORWARD);//TODO: set correct direction
+     while(!getLimitSwitchActivated(V_LIMIT_PIN)) {
+       step(V_STEP_PIN, 1);
+       delay(5);
+     }
   }
 }
 
@@ -260,6 +279,6 @@ void loop() {
       Serial.println("Upper servo setpoint: " + penUpSP);
       Serial.println("Lower servo setpoint: " + penUpSP);
     }
-	Serial.println("executed: " + command);
+    Serial.println("executed: " + command);
   }
 }
