@@ -8,17 +8,20 @@ import time
 
 
 def send_instructions(instructions):
-	serialcomm = serial.Serial('COM7', 9600)
+	serialcomm = serial.Serial('COM7', 9600)  # todo: try increasing baud rate
 	serialcomm.timeout = 0.3
 	total = len(instructions)
 	progress = 0
 	serialcomm.write("tell me you see meeeeeee (⓿_⓿)".encode())
-	time.sleep(30)
+
+	# wait for manual reset
+	print("Put pen down on the paper")
+	input("Press enter to continue...")
+
 	for instruction in instructions:
 		#send instruction
 		serialcomm.write(instruction.encode())
 		print(instruction)
-		
 
 		#wait for response that it finished
 		message = serialcomm.readline().decode()
@@ -29,12 +32,13 @@ def send_instructions(instructions):
 		print(message)
 
 		#show progress
-		progress+=1
+		progress += 1
 		print("progress: " + str(math.floor(100*progress/total)) + "%")
 
 	print("done... ✍(◔◡◔)")
 
 	return
+
 
 def make_instructions(frame):
 	# defining variables
@@ -44,14 +48,24 @@ def make_instructions(frame):
 	width, height = frame.shape
 	steps_per_pixel_horizontal = steps_per_inch * ((8.5 - (margin*2)) / width)
 	steps_per_pixel_vertical = steps_per_inch * ((11 - (margin*2)) / height)
+	steps_per_pixel_preserved = min(
+		steps_per_pixel_horizontal, steps_per_pixel_vertical)
 
-	total = np.sum([[1 if frame[x, y] == 0 else 0 for x in range(width)] for y in range(height)])
+	total = np.sum([[1 if frame[x, y] == 0 else 0 for x in range(width)]
+                 for y in range(height)])
 	calculated = 0
 	print(total)
 
 	# calculating instructions
 	global instructions
-	instructions = ["penSet 7", "penUp"] # TODO: add aReset
+	global penHeight
+	global penInitial
+	global penFudge
+	penHeight = 7
+	penInitial = 7
+	penFudge = 3
+	instructions = ["penSet " + str(penHeight), "penUp"]  # TODO: add aReset
+
 	global x
 	global y
 	global xSteps
@@ -64,22 +78,28 @@ def make_instructions(frame):
 	def stepTo(xPix, yPix):
 		global xSteps
 		global ySteps
-		
+
 		xGoalSteps = xPix * steps_per_pixel_horizontal
 		yGoalSteps = yPix * steps_per_pixel_vertical
 
 		xDifSteps = math.floor(xGoalSteps - xSteps)
 		yDifSteps = math.floor(yGoalSteps - ySteps)
 
-		instructions.append("aMove 0," + str(xDifSteps * 16) + ";0," + str(16*yDifSteps))
-		instructions.append("penPress")
+		instructions.append("aMove 0," + str(xDifSteps * 16) +
+		                    ";0," + str(16*yDifSteps))
+		xSteps += xDifSteps
+		ySteps += yDifSteps
 
-		xSteps+=xDifSteps
-		ySteps+=yDifSteps
+		penGoal = penInitial + math.floor(x * penFudge / width)
+		if penGoal != penHeight:
+			penHeight = penGoal
+			instructions.append("penSet " + str(penHeight))
+		instructions.append("penPress")
 
 		return
 
-	visited = [[0 for c in range(height)] for r in range(width)]
+	visited = [[1 if c % 2 == 0 or r %
+             2 == 0 else 0 for c in range(height)] for r in range(width)]
 	global instructionWasMade
 	instructionWasMade = True
 	while calculated < total and instructionWasMade:
@@ -88,10 +108,10 @@ def make_instructions(frame):
 		xOff = 0
 		yOff = 0
 		for num in range(1, max(x, width-x, y, height-y)):
-			dir = -1 if num%2==0 else 1
+			dir = -1 if num % 2 == 0 else 1
 			checkY = y + yOff
 			for dXOff in range(0, num):
-				xOff+=dir
+				xOff += dir
 				checkX = x + xOff
 				#check out of bounds
 				if checkX < 0 or checkX >= width or checkY < 0 or checkY >= height:
@@ -102,7 +122,7 @@ def make_instructions(frame):
 					x = checkX
 					y = checkY
 					stepTo(x, y)
-					calculated+=1
+					calculated += 1
 					print("processing: " + str(math.floor(100*calculated/total)) + "%")
 					instructionWasMade = True
 					break
@@ -110,7 +130,7 @@ def make_instructions(frame):
 				break
 			checkX = x + xOff
 			for dYOff in range(0, num):
-				yOff+=dir
+				yOff += dir
 				checkY = y + yOff
 				#check out of bounds
 				if checkX < 0 or checkX >= width or checkY < 0 or checkY >= height:
@@ -121,7 +141,7 @@ def make_instructions(frame):
 					x = checkX
 					y = checkY
 					stepTo(x, y)
-					calculated+=1
+					calculated += 1
 					print("processing: " + str(math.floor(100*calculated/total)) + "%")
 					instructionWasMade = True
 					break
@@ -129,9 +149,10 @@ def make_instructions(frame):
 				break
 
 	#move pen back instruction
-	instructions.append("aMove " + str(-xSteps) + "," + str(-ySteps) + ";0,0")
+	instructions.append("aMove 0," + str(-xSteps) + ";0," + str(-ySteps))
 
 	return instructions
+
 
 def get_bw_frame():
     cap = cv.VideoCapture(0)
@@ -181,6 +202,7 @@ def get_bw_frame():
         # letting user select frame to print with 'p'
         if cv.waitKey(200) == ord("p"):
             return f2
+
 
 if __name__ == "__main__":
 	frame = get_bw_frame()
