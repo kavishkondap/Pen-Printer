@@ -64,7 +64,7 @@ def make_instructions(frame):
 	penHeight = 7
 	penInitial = 7
 	penFudge = 3
-	instructions = ["penSet " + str(penHeight), "penUp"]  # TODO: add aReset
+	instructions = ["aReset", "penSet " + str(penHeight) + " 10", "penUp"]
 
 	global x
 	global y
@@ -90,10 +90,12 @@ def make_instructions(frame):
 		xSteps += xDifSteps
 		ySteps += yDifSteps
 
-		penGoal = penInitial - math.floor(x * penFudge / width)
+		change = math.floor(x * penFudge/width)
+		penGoal = penInitial - change
 		if penGoal != penHeight:
 			penHeight = penGoal
-			instructions.append("penSet " + str(penHeight))
+			instructions.append("penSet " + str(penHeight) + " " +
+			                    str(10 + math.floor(change/2)))
 		instructions.append("penPress")
 
 		return
@@ -207,5 +209,5 @@ def get_bw_frame():
 if __name__ == "__main__":
 	frame = get_bw_frame()
 	instructions = make_instructions(frame)
-	# instructions = ["penSet 7", "penUp", "aMove 0,1000;0,1000", "aMove 0,-1000;0,-1000"]
+	# instructions = ["penSet 7 10", "penUp", "aMove 0,1000;0,1000", "aMove 0,-1000;0,-1000"]
 	send_instructions(instructions)

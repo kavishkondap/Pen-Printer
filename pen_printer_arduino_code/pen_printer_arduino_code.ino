@@ -142,8 +142,12 @@ void penCommandListener(String command) {
     
     Serial.write("Done resetting pen setpoints");
   } else if (command.startsWith("penSet")) {
-    penDownSP = command.substring(command.indexOf(" ") + 1).toInt();
-    penUpSP = penDownSP + 10;
+	String secondHalf = command.substring(command.indexOf(" ") + 1);
+	int spaceLoc = secondHalf.indexOf(" ");
+	int setpoint = secondHalf.substring(0, spaceLoc).toInt();
+	int offset = secondHalf.substring(spaceLoc + 1).toInt(); 
+    penDownSP = setpoint;
+    penUpSP = penDownSP + offset;
   }
 }
 
