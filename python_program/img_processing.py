@@ -61,11 +61,12 @@ def make_instructions(frame):
     global penHeight
     global penInitial
     global penFudge
-    penHeight = 26
+    penHeight = 28
     penInitial = penHeight
     penFudge = 14
-    instructions = ["penUp", "aReset",
-                    "penSet " + str(penHeight) + " 10", "penUp"]
+    minDiff = 15
+    instructions = [
+        "penSet " + str(penHeight) + " " + str(minDiff), "penUp", "aReset", "penUp"]
 
     global x
     global y
@@ -96,7 +97,7 @@ def make_instructions(frame):
         if penGoal > penHeight:
             penHeight = penGoal
             instructions.append("penSet " + str(penHeight) + " " +
-                        str(10 + math.floor(change/2)))
+                                str(minDiff + math.floor(change)))
 
         #moves the pen to the next spot
         instructions.append("aMove 0," + str(xDifSteps * 16) +
@@ -106,7 +107,7 @@ def make_instructions(frame):
         if penGoal < penHeight:
             penHeight = penGoal
             instructions.append("penSet " + str(penHeight) + " " +
-                str(10 + math.floor(change/2)))
+                                str(minDiff + math.floor(change)))
     
         #pressses the pen
         instructions.append("penPress")
