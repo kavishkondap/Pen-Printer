@@ -182,8 +182,6 @@ def get_bw_frame():
 		# gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, 3)
 
 		img = cv.imread("mavy.png", cv.IMREAD_GRAYSCALE)
-		# img = cv.cvtColor(img, cv.COLORBGR2GRAY)
-		print(img.shape)
 
 		cv.imshow("Image", img)
 
