@@ -2,40 +2,39 @@ import cv2 as cv
 import numpy as np
 import math
 import serial
-# from requests import get
 
 
 def send_instructions(instructions):
-    serialcomm = serial.Serial('COM7', 9600)  # todo: try increasing baud rate
-    serialcomm.timeout = 0.3
-    total = len(instructions)
-    progress = 0
-    serialcomm.write("tell me you see meeeeeee (⓿_⓿)".encode())
+	serialcomm = serial.Serial('COM7', 9600)
+	serialcomm.timeout = 0.3
+	total = len(instructions)
+	progress = 0
+	serialcomm.write("tell me you see meeeeeee (⓿_⓿)".encode())
 
-    # wait for manual reset
-    print("Put pen down on the paper")
-    input("Press enter to continue...")
+	# wait for manual reset
+	input("Press enter to start...")
 
-    for instruction in instructions:
-        # send instruction
-        serialcomm.write(instruction.encode())
-        print(instruction)
+	for instruction in instructions:
+		# send instruction
+		serialcomm.write(instruction.encode())
+		print(instruction)
 
-        # wait for response that it finished
-        message = serialcomm.readline().decode()
-        while message.startswith("executed:") == False:
-            message = serialcomm.readline().decode()
+		# wait for response that it finished
+		message = serialcomm.readline().decode()
+		while message.startswith("executed:") == False:
+			message = serialcomm.readline().decode()
 
-        # show execution result
-        print(message)
+		# show execution result
+		print(message)
 
-        # show progress
-        progress += 1
-        print("progress: " + str(math.floor(100*progress/total)) + "%")
+		# show progress
+		progress += 1
+		print("progress: " + str(math.floor(100*progress/total)) + "%")
+		print("steps progress: " + progress + "/" + "total")
 
-    print("done... ✍(◔◡◔)")
+	print("done... ✍(◔◡◔)")
 
-    return
+	return
 
 
 def make_instructions(frame):
@@ -80,8 +79,8 @@ def make_instructions(frame):
         global ySteps
         global penHeight
 
-        xGoalSteps = xPix * steps_per_pixel_horizontal
-        yGoalSteps = yPix * steps_per_pixel_vertical
+        xGoalSteps = xPix * steps_per_pixel_preserved
+        yGoalSteps = yPix * steps_per_pixel_preserved
 
         xDifSteps = math.floor(xGoalSteps - xSteps)
         yDifSteps = math.floor(yGoalSteps - ySteps)
@@ -182,8 +181,6 @@ def get_bw_frame():
 		# gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, 3)
 
 		img = cv.imread("mavy.png", cv.IMREAD_GRAYSCALE)
-		# img = cv.cvtColor(img, cv.COLORBGR2GRAY)
-		print(img.shape)
 
 		cv.imshow("Image", img)
 
