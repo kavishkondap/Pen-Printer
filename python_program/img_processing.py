@@ -5,7 +5,7 @@ import serial
 
 
 def send_instructions(instructions):
-	serialcomm = serial.Serial('COM7', 9600)
+	serialcomm = serial.Serial('COM3', 9600)
 	serialcomm.timeout = 0.3
 	total = len(instructions)
 	progress = 0
@@ -30,7 +30,7 @@ def send_instructions(instructions):
 		# show progress
 		progress += 1
 		print("progress: " + str(math.floor(100*progress/total)) + "%")
-		print("steps progress: " + progress + "/" + "total")
+		print("steps progress: " + str(progress) + "/" + "total")
 
 	print("done... ✍(◔◡◔)")
 
@@ -58,7 +58,7 @@ def make_instructions(frame):
     global penHeight
     global penInitial
     global penFudge
-    penHeight = 5
+    penHeight = 59
     penInitial = penHeight
     penFudge = 14
     minDiff = 15
@@ -170,23 +170,24 @@ def make_instructions(frame):
 
 
 def get_bw_frame():
-	# cap = cv.VideoCapture(0)
+    cap = cv.VideoCapture(0)
 
-	while True:
+    while True:
 		# get black and white image
-		# ret, frame = cap.read()
-
+        ret, frame = cap.read()
+        gray = cv.cvtColor (frame, cv.COLOR_BGR2GRAY)
+     
 		# using a threshold to get image
-		# f2 = cv.adaptiveThreshold(
-		# gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, 3)
+        f2 = cv.adaptiveThreshold(
+		gray, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 9, 3)
 
-		img = cv.imread("mavy.png", cv.IMREAD_GRAYSCALE)
+        # img = cv.imread("mavy.png", cv.IMREAD_GRAYSCALE)
 
-		cv.imshow("Image", img)
+        cv.imshow("F2", f2)
 
 		# letting user select frame to print with 'p'
-		if cv.waitKey(20) == ord("p"):
-			return img
+        if cv.waitKey(20) == ord("p"):
+            return f2
 
 
 if __name__ == "__main__":
